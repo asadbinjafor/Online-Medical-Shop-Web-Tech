@@ -1,0 +1,7 @@
+{
+  "framework": null,
+  "rewrites": [
+    { "source": "/", "destination": "https://REPLACE-ME.onrender.com/" },
+    { "source": "/:path*", "destination": "https://REPLACE-ME.onrender.com/:path*" }
+  ]
+}

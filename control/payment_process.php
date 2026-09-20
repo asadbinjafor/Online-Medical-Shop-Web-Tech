@@ -52,25 +52,33 @@ if(isset($_POST["confirm_payment"])){
 
     if(empty($errors)){
         $shippingAddress = $_SESSION["shipping_address"];
-
-        $orderId = $mydb->createOrder($_SESSION["user_id"], $totalAmount, $shippingAddress, $paymentMethod, $conn);
-
-        if($orderId){
+        try {
+            $conn->begin_transaction();
+            $orderId = $mydb->createOrder($_SESSION["user_id"], $totalAmount, $shippingAddress, $paymentMethod, $conn);
+            if(!$orderId){
+                throw new RuntimeException('Order insert failed');
+            }
             foreach($itemsArray as $item){
-                $mydb->createOrderItem($orderId, $item["medicine_id"], $item["quantity"], $item["price"], $conn);
-                $mydb->decreaseStock($item["medicine_id"], $item["quantity"], $conn);
+                if(!$mydb->decreaseStock($item["medicine_id"], $item["quantity"], $conn)
+                    || !$mydb->createOrderItem($orderId, $item["medicine_id"], $item["quantity"], $item["price"], $conn)){
+                    throw new RuntimeException('Stock or order item update failed');
+                }
             }
 
             $transactionId = "TXN" . time() . rand(1000, 9999);
-            $mydb->createPayment($orderId, $totalAmount, $paymentMethod, $transactionId, $conn);
-
-            $mydb->clearCart($_SESSION["user_id"], $conn);
+            if(!$mydb->createPayment($orderId, $totalAmount, $paymentMethod, $transactionId, $conn)
+                || !$mydb->clearCart($_SESSION["user_id"], $conn)){
+                throw new RuntimeException('Payment or cart update failed');
+            }
+            $conn->commit();
             unset($_SESSION["shipping_address"]);
 
             header("Location: ../view/order_success.php?order_id=" . $orderId);
             exit();
-        } else {
-            $errors["database"] = "Failed to create order. Please try again.";
+        } catch(Throwable $error) {
+            $conn->rollback();
+            error_log('Order failed: ' . $error->getMessage());
+            $errors["database"] = "Could not complete the order. Please try again.";
         }
     }
 }

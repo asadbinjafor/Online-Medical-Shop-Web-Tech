@@ -69,7 +69,7 @@ include_once '../control/app.php';
 
             <div class="form-group">
                 <?php if($profilePicture != ""){ ?>
-                    <img src="<?php echo PROFILE_UPLOAD_WEB . htmlspecialchars($profilePicture); ?>"
+                    <img src="<?php echo htmlspecialchars(mediaUrl($profilePicture, 'profile'), ENT_QUOTES, 'UTF-8'); ?>"
                          alt="Current Picture" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:8px;display:block;">
                 <?php } ?>
                 <label for="profile_picture">Profile Picture (JPEG/PNG, max 2MB)</label>

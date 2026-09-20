@@ -47,7 +47,6 @@ include '../control/admin_medicine_form_process.php';
               onsubmit="return validateMedicineForm()">
             <?php if($isEdit && $editMed){ ?>
                 <input type="hidden" name="med_id" value="<?php echo $editMed["id"]; ?>">
-                <input type="hidden" name="existing_image" value="<?php echo htmlspecialchars($old["image_path"]); ?>">
             <?php } ?>
 
             <div class="form-group">
@@ -107,7 +106,7 @@ include '../control/admin_medicine_form_process.php';
                 <label for="image">Medicine Image (JPEG/PNG, max 2MB)</label>
                 <?php if(!empty($old["image_path"])){ ?>
                     <div class="current-image-preview">
-                        <img src="<?php echo MEDICINE_UPLOAD_WEB . htmlspecialchars($old["image_path"]); ?>"
+                        <img src="<?php echo htmlspecialchars(mediaUrl($old["image_path"], 'medicine'), ENT_QUOTES, 'UTF-8'); ?>"
                              alt="Current image" class="medicine-thumb-lg">
                         <small>Current image — upload new to replace</small>
                     </div>

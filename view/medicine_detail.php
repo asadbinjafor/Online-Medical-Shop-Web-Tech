@@ -4,7 +4,7 @@ include_once '../control/app.php';
 
 $imageWeb = "";
 if(!empty($medicine["image_path"])){
-    $imageWeb = MEDICINE_UPLOAD_WEB . htmlspecialchars($medicine["image_path"]);
+    $imageWeb = htmlspecialchars(mediaUrl($medicine["image_path"], 'medicine'), ENT_QUOTES, 'UTF-8');
 }
 $isCustomer = isset($_SESSION["user_id"]) && $_SESSION["role"] === "customer";
 ?>

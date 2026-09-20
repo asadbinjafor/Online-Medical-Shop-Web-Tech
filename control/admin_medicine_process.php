@@ -16,8 +16,8 @@ $success = "";
 if(isset($_POST["delete_medicine"])){
     $delId = (int)($_POST["med_id"] ?? 0);
 
-    if($mydb->medicineInPendingOrder($delId, $conn)){
-        $errors["delete"] = "Cannot delete: this medicine is part of a pending order";
+    if($mydb->medicineInAnyOrder($delId, $conn)){
+        $errors["delete"] = "Cannot delete: this medicine is part of an order";
     } else {
         $medResult = $mydb->getMedicineById($delId, $conn);
         if($medResult->num_rows > 0){

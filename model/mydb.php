@@ -1,11 +1,28 @@
 <?php
 include_once __DIR__ . "/database.php";
+include_once __DIR__ . "/pg_compat.php";
 
 class MyDB {
 
     function createConn(){
-        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        return $conn;
+        if (getenv('DB_DRIVER') === 'pgsql') {
+            $host = getenv('DB_HOST');
+            $user = getenv('DB_USER');
+            $password = getenv('DB_PASS');
+            $port = getenv('DB_PORT') ?: '5432';
+            $name = getenv('DB_NAME') ?: 'postgres';
+            if (!$host || !$user || $password === false) {
+                throw new RuntimeException('PostgreSQL connection variables are missing.');
+            }
+            $dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode=require";
+            $pdo = new PDO($dsn, $user, $password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ]);
+            return new PgConnection($pdo);
+        }
+        return new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     }
 
     
@@ -18,7 +35,7 @@ class MyDB {
     }
 
     function emailExists($email, $conn){
-        $sql  = "SELECT id FROM users WHERE email = ?";
+        $sql  = "SELECT id FROM users WHERE LOWER(email) = LOWER(?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -26,7 +43,7 @@ class MyDB {
     }
 
     function emailExistsForOtherUser($email, $userId, $conn){
-        $sql  = "SELECT id FROM users WHERE email = ? AND id <> ?";
+        $sql  = "SELECT id FROM users WHERE LOWER(email) = LOWER(?) AND id <> ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("si", $email, $userId);
         $stmt->execute();
@@ -34,7 +51,7 @@ class MyDB {
     }
 
     function getUserByEmail($email, $conn){
-        $sql  = "SELECT * FROM users WHERE email = ?";
+        $sql  = "SELECT * FROM users WHERE LOWER(email) = LOWER(?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -93,7 +110,7 @@ class MyDB {
                           categories.name AS category_name, categories.category_type
                    FROM medicines
                    LEFT JOIN categories ON medicines.category_id = categories.id
-                   WHERE medicines.name LIKE ?
+                   WHERE LOWER(medicines.name) LIKE LOWER(?)
                    AND (? = '' OR medicines.vendor_name = ?)
                    AND (? = '' OR categories.name = ?)
                    AND (? = '' OR categories.category_type = ?)
@@ -166,7 +183,7 @@ class MyDB {
     }
 
     function categoryNameExists($name, $conn){
-        $sql  = "SELECT id FROM categories WHERE name = ?";
+        $sql  = "SELECT id FROM categories WHERE LOWER(name) = LOWER(?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $name);
         $stmt->execute();
@@ -174,7 +191,7 @@ class MyDB {
     }
 
     function categoryNameExistsForOther($name, $id, $conn){
-        $sql  = "SELECT id FROM categories WHERE name = ? AND id <> ?";
+        $sql  = "SELECT id FROM categories WHERE LOWER(name) = LOWER(?) AND id <> ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("si", $name, $id);
         $stmt->execute();
@@ -225,10 +242,10 @@ class MyDB {
         return $stmt->execute();
     }
 
-    function medicineInPendingOrder($medicineId, $conn){
+    function medicineInAnyOrder($medicineId, $conn){
         $sql  = "SELECT oi.id FROM order_items oi
                  JOIN orders o ON oi.order_id = o.id
-                 WHERE oi.medicine_id = ? AND o.status = 'pending'
+                 WHERE oi.medicine_id = ?
                  LIMIT 1";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $medicineId);
@@ -252,18 +269,16 @@ class MyDB {
     }
 
     function deleteUserOrderItems($userId, $conn){
-        $sql  = "DELETE oi FROM order_items oi
-                 JOIN orders o ON oi.order_id = o.id
-                 WHERE o.user_id = ?";
+        $sql  = "DELETE FROM order_items WHERE order_id IN
+                 (SELECT id FROM orders WHERE user_id = ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $userId);
         return $stmt->execute();
     }
 
     function deleteUserPayments($userId, $conn){
-        $sql  = "DELETE p FROM payments p
-                 JOIN orders o ON p.order_id = o.id
-                 WHERE o.user_id = ?";
+        $sql  = "DELETE FROM payments WHERE order_id IN
+                 (SELECT id FROM orders WHERE user_id = ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $userId);
         return $stmt->execute();
@@ -459,7 +474,7 @@ class MyDB {
         $sql  = "UPDATE medicines SET availability = availability - ? WHERE id = ? AND availability >= ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("iii", $quantity, $medicineId, $quantity);
-        return $stmt->execute();
+        return $stmt->execute() && $stmt->affected_rows === 1;
     }
 
     function increaseStock($medicineId, $quantity, $conn){
@@ -506,7 +521,7 @@ class MyDB {
             $types   .= "s";
         }
         if($q != ""){
-            $sql     .= " AND m.name LIKE ?";
+            $sql     .= " AND LOWER(m.name) LIKE LOWER(?)";
             $params[] = "%" . $q . "%";
             $types   .= "s";
         }

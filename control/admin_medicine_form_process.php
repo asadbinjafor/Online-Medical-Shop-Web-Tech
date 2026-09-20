@@ -78,7 +78,15 @@ if(isset($_POST["save_medicine"])){
         $errors["availability"] = "Availability must be a non-negative whole number";
     }
 
-    $existingImage = $_POST["existing_image"] ?? "";
+    $existingImage = "";
+    if($isEdit){
+        $currentMedicine = $mydb->getMedicineById($medId, $conn);
+        if($currentMedicine->num_rows === 0){
+            $errors["database"] = "Medicine not found";
+        } else {
+            $existingImage = $currentMedicine->fetch_assoc()["image_path"] ?? "";
+        }
+    }
     $old["image_path"] = $existingImage;
     $imagePath = uploadMedicineImage("image", $existingImage, $errors);
 

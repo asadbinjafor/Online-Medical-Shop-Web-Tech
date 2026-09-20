@@ -71,6 +71,9 @@ if(isset($_POST["update"])){
             $updateResult = $mydb->updatePassword($_SESSION["user_id"], password_hash($newPass, PASSWORD_DEFAULT), $conn);
         }
         if($updateResult === true){
+            if($profilePicture !== $user["profile_picture"]){
+                deleteProfileImageFile($user["profile_picture"]);
+            }
             if($newPass != ""){
                 clearRememberCookie();
                 $_SESSION = array();

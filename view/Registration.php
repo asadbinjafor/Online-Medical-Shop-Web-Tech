@@ -49,15 +49,6 @@ include '../control/registration_process.php';
             </div>
 
             <div class="form-group">
-                <label for="role">Account Type</label>
-                <select id="role" name="role">
-                    <option value="customer" <?php if($old["role"] == "customer") echo "selected"; ?>>Customer</option>
-                    <option value="admin" <?php if($old["role"] == "admin") echo "selected"; ?>>Admin</option>
-                </select>
-                <span class="error"><?php echo $errors["role"] ?? ""; ?></span>
-            </div>
-
-            <div class="form-group">
                 <label for="address">Address</label>
                 <textarea id="address" name="address" placeholder="Enter your address"><?php echo htmlspecialchars($old["address"]); ?></textarea>
                 <span class="error"><?php echo $errors["address"] ?? ""; ?></span>

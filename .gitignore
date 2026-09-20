@@ -1,0 +1,6 @@
+.env
+.env.*
+uploads/profile/*
+uploads/medicines/*
+!uploads/profile/.gitkeep
+!uploads/medicines/.gitkeep

@@ -46,7 +46,7 @@ include_once '../control/app.php';
         <div class="profile-layout">
             <?php if($profilePicture != ""){ ?>
                 <img class="profile-avatar"
-                     src="<?php echo PROFILE_UPLOAD_WEB . htmlspecialchars($profilePicture); ?>"
+                     src="<?php echo htmlspecialchars(mediaUrl($profilePicture, 'profile'), ENT_QUOTES, 'UTF-8'); ?>"
                      alt="Profile Picture">
             <?php } else { ?>
                 <div class="profile-avatar-placeholder">&#9786;</div>

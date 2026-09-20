@@ -72,7 +72,7 @@ include '../control/admin_medicine_process.php';
                             <td><?php echo $i++; ?></td>
                             <td>
                                 <?php if(!empty($med["image_path"])){ ?>
-                                    <img src="<?php echo MEDICINE_UPLOAD_WEB . htmlspecialchars($med["image_path"]); ?>"
+                                    <img src="<?php echo htmlspecialchars(mediaUrl($med["image_path"], 'medicine'), ENT_QUOTES, 'UTF-8'); ?>"
                                          alt="medicine" class="medicine-thumb">
                                 <?php } else { ?>
                                     <span class="no-image">No image</span>

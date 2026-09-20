@@ -5,12 +5,11 @@ include_once 'upload.php';
 session_start();
 
 $errors = array();
-$old    = array("name"=>"", "email"=>"", "role"=>"customer", "address"=>"", "phone"=>"");
+$old    = array("name"=>"", "email"=>"", "address"=>"", "phone"=>"");
 
 if(isset($_POST["register"])){
     $old["name"]    = trim($_POST["name"] ?? "");
     $old["email"]   = trim($_POST["email"] ?? "");
-    $old["role"]    = $_POST["role"] ?? "customer";
     $old["address"] = trim($_POST["address"] ?? "");
     $old["phone"]   = trim($_POST["phone"] ?? "");
     $password       = $_POST["password"] ?? "";
@@ -23,9 +22,6 @@ if(isset($_POST["register"])){
     }
     if(strlen($password) < 8){
         $errors["password"] = "Password must be at least 8 characters";
-    }
-    if($old["role"] != "admin" && $old["role"] != "customer"){
-        $errors["role"] = "Select a valid role";
     }
     if($old["address"] == ""){
         $errors["address"] = "Address is required";
@@ -51,7 +47,7 @@ if(isset($_POST["register"])){
 
     if(count($errors) == 0){
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        $result       = $mydb->createUser($old["name"], $old["email"], $passwordHash, $old["role"], $old["address"], $old["phone"], $profilePicture, $conn);
+        $result       = $mydb->createUser($old["name"], $old["email"], $passwordHash, "customer", $old["address"], $old["phone"], $profilePicture, $conn);
         if($result === true){
             header("Location: ../view/login.php?registered=1");
             exit();
