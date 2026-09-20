@@ -29,7 +29,7 @@ See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the exact dashboard and environment-v
 - `database.pg.sql`: PostgreSQL schema and sample medicines for a new Supabase project.
 - `model/pg_compat.php`: PDO PostgreSQL adapter for the app's existing query/result API.
 - `Dockerfile`: PHP/Apache service for Render.
-- `vercel-proxy/vercel.json`: Vercel proxy; replace the placeholder with the Render URL before importing into Vercel.
+- `vercel-proxy/vercel.mjs`: Vercel proxy; set `RENDER_ORIGIN` to the Render URL in Vercel project settings.
 - Uploaded images use Supabase Storage in production and the local `uploads/` folder in development.
 
 Existing MySQL customer/order data is **not** copied by `database.pg.sql`; it needs a separate data migration if you want to preserve it.

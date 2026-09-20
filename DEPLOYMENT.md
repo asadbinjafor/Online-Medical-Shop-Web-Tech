@@ -68,11 +68,10 @@ Sign out and sign in again to refresh the role stored in the PHP session. Public
 
 ## 5. Put Vercel in front
 
-1. Edit `vercel-proxy/vercel.json`: replace both `https://REPLACE-ME.onrender.com` values with the actual Render URL.
-2. Commit and push that file to GitHub.
-3. In [Vercel Dashboard](https://vercel.com/dashboard), import the same GitHub repository as a new project.
-4. Set **Root Directory** to `vercel-proxy`, **Framework Preset** to **Other**, and leave **Build Command** empty.
-5. Deploy. Open the Vercel URL and repeat the register/login/cart/order test. The browser URL should remain on Vercel while the requests reach Render.
+1. In [Vercel Dashboard](https://vercel.com/dashboard), import the same GitHub repository as a new project.
+2. Set **Root Directory** to `vercel-proxy`, **Framework Preset** to **Other**, and leave **Build Command** empty.
+3. Before deploying, add the Vercel environment variable `RENDER_ORIGIN` with the exact Render URL, such as `https://your-service.onrender.com` (no path). This is a public URL, not a secret.
+4. Deploy. `vercel-proxy/vercel.mjs` builds the rewrite from `RENDER_ORIGIN`. Open the Vercel URL and repeat the register/login/cart/order test. The browser URL should remain on Vercel while the requests reach Render.
 
 Keeping the Vercel root at `vercel-proxy` prevents PHP source files from being deployed as static assets there.
 
