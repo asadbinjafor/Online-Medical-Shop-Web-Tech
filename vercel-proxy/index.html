@@ -49,6 +49,7 @@
     const statusElement = document.getElementById('status');
     const startedAt = Date.now();
     let attempts = 0;
+    let consecutiveReadyChecks = 0;
 
     async function openWhenReady() {
       attempts += 1;
@@ -56,17 +57,31 @@
       statusElement.textContent = `Connecting to the server… ${elapsed}s`;
 
       try {
-        const response = await fetch(`/health.php?wake=${Date.now()}`, {
+        const healthResponse = await fetch(`/health.php?wake=${Date.now()}`, {
           cache: 'no-store',
           headers: { 'X-MediShop-Wakeup': '1' }
         });
-        if (response.ok) {
-          statusElement.textContent = 'Server is ready. Opening MediShop…';
-          window.location.replace('/view/Home.php');
-          return;
+        if (healthResponse.ok) {
+          const homeResponse = await fetch(`/view/Home.php?readiness=${Date.now()}`, {
+            cache: 'no-store',
+            credentials: 'include'
+          });
+          if (homeResponse.ok) {
+            consecutiveReadyChecks += 1;
+            if (consecutiveReadyChecks >= 2) {
+              statusElement.textContent = 'Server is ready. Opening MediShop…';
+              window.setTimeout(() => window.location.replace('/view/Home.php'), 700);
+              return;
+            }
+            statusElement.textContent = 'Server started. Finishing the connection…';
+            window.setTimeout(openWhenReady, 1500);
+            return;
+          }
         }
+        consecutiveReadyChecks = 0;
       } catch (error) {
         // A sleeping Render instance can temporarily refuse the proxied request.
+        consecutiveReadyChecks = 0;
       }
 
       if (attempts < 72) {
