@@ -73,7 +73,7 @@ Sign out and sign in again to refresh the role stored in the PHP session. Public
 1. In [Vercel Dashboard](https://vercel.com/dashboard), import the same GitHub repository as a new project.
 2. Set **Root Directory** to `vercel-proxy`, **Framework Preset** to **Other**, and leave **Build Command** empty.
 3. Confirm `vercel-proxy/vercel.json` points to `https://online-medical-shop-web-tech.onrender.com`.
-4. Deploy. Open the Vercel URL and repeat the register/login/cart/order test. The browser URL should remain on Vercel while the requests reach Render.
+4. Deploy. The Vercel root serves `vercel-proxy/index.html`, which wakes a sleeping free Render service and opens `/view/Home.php` when `/health.php` responds. Other paths continue to proxy to Render.
 
 Keeping the Vercel root at `vercel-proxy` prevents PHP source files from being deployed as static assets there.
 
@@ -84,6 +84,6 @@ Keeping the Vercel root at `vercel-proxy` prevents PHP source files from being d
 - Check Render logs if a page fails. A DB connection error usually means the pooler host/user/password or `DB_DRIVER` differs from the copied values.
 - If an image upload fails, check that the public bucket exists and `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `SUPABASE_STORAGE_BUCKET` are correct.
 - PHP file sessions on Render may end after a service restart or deploy, so users may have to sign in again. Orders and images remain in Supabase.
-- A free Render service can sleep when idle. The first proxied Vercel request can temporarily show Render's `502 Bad Gateway` while the service wakes. Open the Render URL directly, wait until `/health.php` returns `{"status":"ok"}`, then refresh Vercel. Render's paid always-on service avoids cold starts.
+- A free Render service sleeps after 15 minutes without inbound traffic and can take about one minute to wake. The Vercel startup page prevents a root visit from exposing Render's temporary 502 page. A paid Render compute plan is required when the PHP server must remain continuously available without a cold start.
 
 No database password or API secret should be added to tracked files or Vercel settings. The Vercel project only proxies requests; Render holds all server secrets.

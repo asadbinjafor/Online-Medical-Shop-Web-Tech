@@ -3,12 +3,16 @@
   "framework": null,
   "rewrites": [
     {
-      "source": "/",
-      "destination": "https://online-medical-shop-web-tech.onrender.com/"
-    },
-    {
       "source": "/:path*",
       "destination": "https://online-medical-shop-web-tech.onrender.com/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
     }
   ]
 }

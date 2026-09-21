@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starting MediShop</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px;
+      color: #e8fffb; background: radial-gradient(circle at top, #124b48 0, #071d1c 42%, #04100f 100%);
+    }
+    main {
+      width: min(520px, 100%); padding: 42px 34px; text-align: center;
+      border: 1px solid rgba(107, 235, 218, .22); border-radius: 24px;
+      background: rgba(3, 23, 22, .82); box-shadow: 0 24px 70px rgba(0, 0, 0, .38);
+    }
+    .mark {
+      width: 66px; height: 66px; margin: 0 auto 20px; display: grid; place-items: center;
+      border-radius: 18px; font-size: 32px; background: linear-gradient(135deg, #24cbb5, #0b8176);
+      box-shadow: 0 14px 36px rgba(36, 203, 181, .24);
+    }
+    h1 { margin: 0 0 10px; font-size: clamp(28px, 6vw, 40px); letter-spacing: -.03em; }
+    p { margin: 0; color: #a9c9c5; line-height: 1.6; }
+    .track { height: 8px; margin: 28px 0 16px; overflow: hidden; border-radius: 99px; background: #123432; }
+    .bar { width: 38%; height: 100%; border-radius: inherit; background: #39dac4; animation: loading 1.25s ease-in-out infinite alternate; }
+    #status { min-height: 24px; font-size: 14px; color: #c8e7e3; }
+    a {
+      display: inline-block; margin-top: 22px; padding: 11px 18px; border-radius: 10px;
+      color: #06221f; background: #5ce3d0; font-weight: 700; text-decoration: none;
+    }
+    small { display: block; margin-top: 18px; color: #6f9994; }
+    @keyframes loading { from { transform: translateX(-8%); } to { transform: translateX(172%); } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark" aria-hidden="true">✚</div>
+    <h1>Starting MediShop</h1>
+    <p>The application server is waking up. The shop will open automatically when it is ready.</p>
+    <div class="track" aria-hidden="true"><div class="bar"></div></div>
+    <div id="status" role="status" aria-live="polite">Connecting to the server…</div>
+    <a href="https://online-medical-shop-web-tech.onrender.com/view/Home.php">Open the Render app directly</a>
+    <small>Free hosting can take about one minute to start after being idle.</small>
+  </main>
+
+  <script>
+    const statusElement = document.getElementById('status');
+    const startedAt = Date.now();
+    let attempts = 0;
+
+    async function openWhenReady() {
+      attempts += 1;
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      statusElement.textContent = `Connecting to the server… ${elapsed}s`;
+
+      try {
+        const response = await fetch(`/health.php?wake=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'X-MediShop-Wakeup': '1' }
+        });
+        if (response.ok) {
+          statusElement.textContent = 'Server is ready. Opening MediShop…';
+          window.location.replace('/view/Home.php');
+          return;
+        }
+      } catch (error) {
+        // A sleeping Render instance can temporarily refuse the proxied request.
+      }
+
+      if (attempts < 72) {
+        window.setTimeout(openWhenReady, 5000);
+      } else {
+        statusElement.textContent = 'The server is taking longer than expected. Use the button above or try again shortly.';
+      }
+    }
+
+    openWhenReady();
+  </script>
+</body>
+</html>
