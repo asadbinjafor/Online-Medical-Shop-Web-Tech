@@ -102,3 +102,17 @@ INSERT INTO medicines (name, category_id, vendor_name, price, availability, desc
 SELECT 'Dexo Cough Syrup', id, 'Square Pharma', 95.00, 35, 'Liquid cough syrup'
 FROM categories WHERE name = 'Cough Syrup genre'
 AND NOT EXISTS (SELECT 1 FROM medicines WHERE name = 'Dexo Cough Syrup');
+
+-- Default administrator for local/course use.
+INSERT INTO users (name, email, password_hash, role, address, phone, profile_picture)
+SELECT 'Site Admin', 'asadbinjafor@gmail.com',
+       '$2y$10$wa2k1wEjstjfm.3BvkxdUuFh8mOrGhAMvxQuHUmTz5TVkDB2Ebx6S',
+       'admin', 'Dhaka', '00000000000', ''
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('asadbinjafor@gmail.com')
+);
+
+UPDATE users
+SET role = 'admin',
+    password_hash = '$2y$10$wa2k1wEjstjfm.3BvkxdUuFh8mOrGhAMvxQuHUmTz5TVkDB2Ebx6S'
+WHERE LOWER(email) = LOWER('asadbinjafor@gmail.com');

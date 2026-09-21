@@ -7,7 +7,8 @@ The repository is already connected to GitHub. PHP runs on Render, data and imag
 1. In [Supabase Dashboard](https://supabase.com/dashboard), create a project and save its database password.
 2. Open **SQL Editor → New query**. Paste the contents of `database.pg.sql`, then click **Run** once. Do not paste the MySQL `database.sql` here.
 3. In **Table Editor**, confirm `users`, `categories`, `medicines`, `cart`, `orders`, `order_items`, and `payments` exist. `categories` and `medicines` should contain sample rows.
-4. The SQL enables Row Level Security with no browser policies. The PHP server connects to PostgreSQL directly; it does not use the Supabase Data API for shop tables.
+4. The SQL also creates or repairs the default admin account: `asadbinjafor@gmail.com` / `medishop123`. For an existing deployed database, run only `create_default_admin.pg.sql` in the SQL Editor.
+5. The SQL enables Row Level Security with no browser policies. The PHP server connects to PostgreSQL directly; it does not use the Supabase Data API for shop tables.
 
 If you already have real MySQL users and orders, `database.pg.sql` does not transfer them. Import those data separately, keeping IDs and resetting identity sequences afterward.
 
@@ -57,8 +58,9 @@ Generate the remember secret on your computer:
 ```
 
 4. Deploy. `Dockerfile` starts Apache on port `10000`; Render's default `PORT` is `10000`.
-5. Open the `https://YOUR-SERVICE.onrender.com/` URL. Check the home page and sample medicines, then register/login and make a sample order.
-6. After registering an account intended to be the admin, open Supabase **SQL Editor** and run:
+5. In Render **Settings**, set **Health Check Path** to `/health.php`.
+6. Open the `https://YOUR-SERVICE.onrender.com/` URL. Check the home page and sample medicines, then log in with the default admin and make a sample order.
+7. To promote a different registered account, open Supabase **SQL Editor** and run:
 
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'your-admin-email@example.com';
@@ -70,8 +72,8 @@ Sign out and sign in again to refresh the role stored in the PHP session. Public
 
 1. In [Vercel Dashboard](https://vercel.com/dashboard), import the same GitHub repository as a new project.
 2. Set **Root Directory** to `vercel-proxy`, **Framework Preset** to **Other**, and leave **Build Command** empty.
-3. Before deploying, add the Vercel environment variable `RENDER_ORIGIN` with the exact Render URL, such as `https://your-service.onrender.com` (no path). This is a public URL, not a secret.
-4. Deploy. `vercel-proxy/vercel.mjs` builds the rewrite from `RENDER_ORIGIN`. Open the Vercel URL and repeat the register/login/cart/order test. The browser URL should remain on Vercel while the requests reach Render.
+3. Confirm `vercel-proxy/vercel.json` points to `https://online-medical-shop-web-tech.onrender.com`.
+4. Deploy. Open the Vercel URL and repeat the register/login/cart/order test. The browser URL should remain on Vercel while the requests reach Render.
 
 Keeping the Vercel root at `vercel-proxy` prevents PHP source files from being deployed as static assets there.
 
@@ -82,5 +84,6 @@ Keeping the Vercel root at `vercel-proxy` prevents PHP source files from being d
 - Check Render logs if a page fails. A DB connection error usually means the pooler host/user/password or `DB_DRIVER` differs from the copied values.
 - If an image upload fails, check that the public bucket exists and `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `SUPABASE_STORAGE_BUCKET` are correct.
 - PHP file sessions on Render may end after a service restart or deploy, so users may have to sign in again. Orders and images remain in Supabase.
+- A free Render service can sleep when idle. The first proxied Vercel request can temporarily show Render's `502 Bad Gateway` while the service wakes. Open the Render URL directly, wait until `/health.php` returns `{"status":"ok"}`, then refresh Vercel. Render's paid always-on service avoids cold starts.
 
-No password or secret should be added to tracked files or Vercel settings. The Vercel project only proxies requests; Render holds all server secrets.
+No database password or API secret should be added to tracked files or Vercel settings. The Vercel project only proxies requests; Render holds all server secrets.

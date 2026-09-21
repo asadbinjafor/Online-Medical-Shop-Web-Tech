@@ -100,3 +100,19 @@ ALTER TABLE cart ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+-- Default administrator for the course/demo deployment.
+-- Change this password after the first successful login in a real deployment.
+INSERT INTO users (name, email, password_hash, role, address, phone, profile_picture)
+SELECT 'Site Admin', 'asadbinjafor@gmail.com',
+       '$2y$10$wa2k1wEjstjfm.3BvkxdUuFh8mOrGhAMvxQuHUmTz5TVkDB2Ebx6S',
+       'admin', 'Dhaka', '00000000000', ''
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE LOWER(email) = LOWER('asadbinjafor@gmail.com')
+);
+
+-- Re-running this file also repairs the role/password of the default admin.
+UPDATE users
+SET role = 'admin',
+    password_hash = '$2y$10$wa2k1wEjstjfm.3BvkxdUuFh8mOrGhAMvxQuHUmTz5TVkDB2Ebx6S'
+WHERE LOWER(email) = LOWER('asadbinjafor@gmail.com');
